@@ -1,0 +1,189 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    background-image: url("https://raw.githubusercontent.com/Rindo-cult/RindoCult.github.io/refs/heads/main/misc/Discord%20Banner.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Blurred overlay for background */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    background: inherit;
+    filter: blur(1px) brightness(0.7);
+    pointer-events: none;
+}
+
+.header {
+    width: 100%;
+    text-align: center;
+    padding: 2rem 0 1rem 0;
+    background: rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(4px);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+}
+
+.socials {
+    margin-top: 1rem;
+}
+
+.social-link {
+    color: #fff;
+    margin: 0 1rem;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.social-link:hover {
+    color: #ffb347;
+}
+
+.section {
+    background: rgba(0,0,0,0.6);
+    border-radius: 12px;
+    margin: 2rem 0;
+    padding: 2rem;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(4px);
+}
+
+.section h2 {
+    margin-top: 0;
+}
+
+#event-list {
+    list-style: none;
+    padding: 0;
+}
+
+#event-list li {
+    margin: 1rem 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.footer {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+    background: rgba(0,0,0,0.5);
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(4px);
+}
+
+@media (max-width: 600px) {
+    .section {
+        padding: 1rem;
+    }
+    .header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Forums Section Styling */
+#forums ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 400px;
+}
+
+#forums li {
+    margin: 1rem 0;
+    background: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: background 0.2s;
+}
+
+#forums li:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+#forums a {
+    color: #ffd700;
+    font-weight: bold;
+    text-decoration: underline;
+    transition: color 0.2s;
+    word-break: break-all;
+    background: none;
+    border-radius: 0;
+    padding: 0;
+}
+
+#forums a:hover,
+#forums a:focus {
+    color: #000;
+    background: #ffd700;
+    border-radius: 4px;
+    padding: 0 0.2em;
+    text-decoration: none;
+}
+
+/* Calendar Grid */
+#calendar {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 5px;
+margin-top: 1rem;
+}
+
+.calendar-day {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    min-height: 80px;
+    position: relative;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.calendar-day.today {
+    border: 2px solid #ffb347;
+}
+
+.calendar-day .date {
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.event {
+    margin-top: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    background: rgba(255, 180, 71, 0.2);
+    border-left: 3px solid #ffb347;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
