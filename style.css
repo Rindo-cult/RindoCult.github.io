@@ -3,7 +3,7 @@ body {
     min-height: 100vh;
     font-family: Arial, sans-serif;
     color: #fff;
-    background-image: url("https://raw.githubusercontent.com/Rindo-cult/RindoCult.github.io/refs/heads/main/misc/Discord%20Banner.png");
+    background-image: url("/misc/Discord Banner.png");
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
