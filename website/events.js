@@ -8,7 +8,6 @@ class Event {
 
     formatDate() {
         if (!this.start) return "No start date";
-        // Only show start and end time in user's local timezone
         const startStr = this.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         if (this.end) {
             const endStr = this.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -17,7 +16,6 @@ class Event {
         return startStr;
     }
 
-    // Check if this event occurs on a given date
     occursOn(date) {
         if (!this.start) return false;
         const s = this.start;
@@ -26,17 +24,13 @@ class Event {
         switch (this.frequency) {
             case "once":
                 return s.getFullYear() === d.getFullYear() &&
-                s.getMonth() === d.getMonth() &&
-                s.getDate() === d.getDate();
+                       s.getMonth() === d.getMonth() &&
+                       s.getDate() === d.getDate();
             case "weekly":
-                // same weekday, and after start date
-                return d >= s &&
-                s.getDay() === d.getDay();
+                return d >= s && s.getDay() === d.getDay();
             case "monthly":
-                // same day of month, and after start date
                 return d >= s && s.getDate() === d.getDate();
             case "yearly":
-                // same month and day, after start date
                 return d >= s && s.getMonth() === d.getMonth() && s.getDate() === d.getDate();
             default:
                 return false;
@@ -44,19 +38,24 @@ class Event {
     }
 }
 
-
 async function fetchEvents() {
     try {
-        const response = await fetch("events.json");
-        if (!response.ok) throw new Error("Failed to fetch events.json");
+        console.log("📡 Fetching events.json...");
+        const response = await fetch("website/events.json");
+        console.log("✅ Fetch status:", response.status, response.statusText);
+
+        if (!response.ok) throw new Error(`Failed to fetch events.json (status ${response.status})`);
 
         const data = await response.json();
+        console.log("📜 Events loaded:", data);
+
         const events = data.map(e => new Event(e.name, e.frequency, e.start, e.end));
         renderCalendar(events);
 
     } catch (err) {
-        console.error(err);
-        document.getElementById("calendar").innerHTML = "<p>Could not load events.</p>";
+        console.error("❌ fetchEvents error:", err);
+        const calendar = document.getElementById("calendar");
+        if (calendar) calendar.innerHTML = `<p>Could not load events: ${err.message}</p>`;
     }
 }
 
@@ -88,7 +87,6 @@ function renderCalendar(events) {
         label.textContent = day;
         cell.appendChild(label);
 
-        // Define the date for this cell
         const date = new Date(year, month, day);
 
         events.forEach(event => {
@@ -104,6 +102,4 @@ function renderCalendar(events) {
     }
 }
 
-
-// Only run if calendar exists
 if (document.getElementById("calendar")) fetchEvents();
