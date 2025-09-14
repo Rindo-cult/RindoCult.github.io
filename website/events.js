@@ -40,20 +40,20 @@ class Event {
 
 async function fetchEvents() {
     try {
-        console.log("📡 Fetching events.json...");
+        console.log("Fetching events.json...");
         const response = await fetch("website/events.json");
-        console.log("✅ Fetch status:", response.status, response.statusText);
+        console.log("Fetch status:", response.status, response.statusText);
 
         if (!response.ok) throw new Error(`Failed to fetch events.json (status ${response.status})`);
 
         const data = await response.json();
-        console.log("📜 Events loaded:", data);
+        console.log("Events loaded:", data);
 
         const events = data.map(e => new Event(e.name, e.frequency, e.start, e.end));
         renderCalendar(events);
 
     } catch (err) {
-        console.error("❌ fetchEvents error:", err);
+        console.error("fetchEvents error:", err);
         const calendar = document.getElementById("calendar");
         if (calendar) calendar.innerHTML = `<p>Could not load events: ${err.message}</p>`;
     }
