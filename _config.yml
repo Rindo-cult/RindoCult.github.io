@@ -1,0 +1,5 @@
+exclude:
+    - worldpics/bedroom
+    - worldpics/history
+    - worldpics/misc
+    - worldpics/fireplace
