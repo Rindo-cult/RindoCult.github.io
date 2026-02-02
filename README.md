@@ -1,9 +1,10 @@
+```
  ____  _           _          ____      _ _   
 |  _ \(_)_ __   __| | ___    / ___|   _| | |_ 
 | |_) | | '_ \ / _` |/ _ \  | |  | | | | | __|
 |  _ <| | | | | (_| | (_) | | |__| |_| | | |_ 
 |_| \_\_|_| |_|\__,_|\___/   \____\__,_|_|\__|
-                                              
+```
 # Welcome
 This is the repository used by the VRChat group [Rindo Cult](https://vrchat.com/home/group/grp_c04c75e4-f49d-482a-a8ac-a43cb6aecdbd).
 
