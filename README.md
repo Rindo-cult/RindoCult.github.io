@@ -23,6 +23,8 @@ The following applies to all files in this repository, with or without metadata 
 This media was created by Rindo Cult.
 Permission is granted to share, use, and distribute this media for non-commercial purposes.
 
+This media is not to be used for any artificial intelligence (A.I.) and/or machine learning and/or generative purposes.
+
 Rindo Cult reserves the right to revoke this permission and request removal at any time.
 Individuals involved in the creation of this media reserve the right to request the removal of their likeness at any time.
 If you wish to do so, please contact us at: staff.rindo.cult@gmail.com
