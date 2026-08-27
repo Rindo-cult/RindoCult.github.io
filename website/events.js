@@ -60,9 +60,7 @@ class Event {
     }
 }
 
-// NEW LOGIC: Checks if a specific calendar day falls inside any multi-day blackout periods
 function getActiveBlackouts(currentDate, allEvents) {
-    // Treat any event with "cancelled: true" as a blackout rule
     const blackouts = allEvents.filter(e => e.cancelled);
     
     return blackouts.filter(b => {
@@ -76,13 +74,12 @@ function getActiveBlackouts(currentDate, allEvents) {
             e.setHours(23, 59, 59, 999);
             return currentDate >= s && currentDate <= e;
         } else if (b.frequency === "yearly") {
-            // For yearly events (like Staff Vacation), we check the Month/Day to see if it crosses a year boundary (Dec to Jan)
             let dateMD = (currentDate.getMonth() + 1) * 100 + currentDate.getDate();
             let startMD = (s.getMonth() + 1) * 100 + s.getDate();
             let endMD = (e.getMonth() + 1) * 100 + e.getDate();
             
             if (startMD > endMD) { 
-                return dateMD >= startMD || dateMD <= endMD; // Handles Dec 21 to Jan 3 correctly!
+                return dateMD >= startMD || dateMD <= endMD;
             } else {
                 return dateMD >= startMD && dateMD <= endMD;
             }
@@ -90,7 +87,6 @@ function getActiveBlackouts(currentDate, allEvents) {
         return false;
     });
 }
-
 
 async function fetchEvents() {
     try {
@@ -143,16 +139,10 @@ function renderCalendar(events) {
         label.textContent = `${day} ${dayName}`;
         cell.appendChild(label);
 
-        // 1. Get all standard (non-cancelled) events happening today
         let todaysEvents = events.filter(event => !event.cancelled && event.occursOn(date));
-
-        // 2. Check if there are any active blackout periods for this specific day
         const activeBlackouts = getActiveBlackouts(date, events);
-        
-        // 3. Find if there is a "Global Blackout" (A blackout name that doesn't match a normal event name, like "Staff Vacation")
         const globalBlackout = activeBlackouts.find(b => !events.some(e => e.name === b.name && !e.cancelled));
 
-        // 4. Clean up overlaps (if you rescheduled a specific event for one day)
         const uniqueEventsMap = new Map();
         todaysEvents.forEach(event => {
             if (!uniqueEventsMap.has(event.name)) {
@@ -165,7 +155,6 @@ function renderCalendar(events) {
         });
         todaysEvents = Array.from(uniqueEventsMap.values());
 
-        // Sort chronologically
         todaysEvents.sort((a, b) => {
             const dateA = new Date(Date.UTC(year, month, day, a.start.getUTCHours(), a.start.getUTCMinutes()));
             const timeA = dateA.getHours() * 60 + dateA.getMinutes();
@@ -176,7 +165,6 @@ function renderCalendar(events) {
             return timeA - timeB;
         });
 
-        // 5. Render the events
         todaysEvents.forEach(event => {
             const ev = document.createElement("div");
             ev.classList.add("event");
@@ -184,7 +172,6 @@ function renderCalendar(events) {
             let timeDisplay = event.formatDate(date);
             let reasonDisplay = ""; 
 
-            // Check if THIS specific event is cancelled, OR if the whole day is under a Global Blackout
             const specificBlackout = activeBlackouts.find(b => b.name === event.name);
             
             let isCancelled = false;
@@ -195,21 +182,48 @@ function renderCalendar(events) {
                 cancelReason = specificBlackout.reason || (globalBlackout ? globalBlackout.name : "");
             } else if (globalBlackout) {
                 isCancelled = true;
-                cancelReason = globalBlackout.name; // This grabs "Staff Vacation" to use as the reason!
+                cancelReason = globalBlackout.name; 
             }
 
-            // Apply the red styling and reason if the event was flagged
+            // --- NEW: Check if this event's specific end time has passed ---
+            let isPast = false;
+            const refTime = event.end ? event.end : event.start;
+            if (refTime) {
+                // Determine exactly what time this event occurs today based on local timezone
+                const displayStart = new Date(Date.UTC(year, month, day, event.start.getUTCHours(), event.start.getUTCMinutes()));
+                const displayEnd = new Date(Date.UTC(year, month, day, refTime.getUTCHours(), refTime.getUTCMinutes()));
+                
+                let endDayOffset = 0;
+                // If the end time is numerically smaller than the start time (e.g., 23:00 to 01:00), it crosses midnight locally!
+                if (displayEnd.getHours() < displayStart.getHours()) {
+                    endDayOffset = 1;
+                }
+                
+                // Construct the absolute exact moment this event ends
+                const trueEndTime = new Date(year, month, day + endDayOffset, displayEnd.getHours(), displayEnd.getMinutes());
+                
+                if (now > trueEndTime) {
+                    isPast = true;
+                }
+            }
+            // ---------------------------------------------------------------
+
             if (isCancelled) {
                 ev.classList.add("cancelled-event"); 
                 ev.style.backgroundColor = "rgba(180, 40, 40, 0.4)"; 
                 ev.style.border = "1px solid #ff4d4d";
-                
                 timeDisplay = `<span style="text-decoration: line-through; opacity: 0.7;">${timeDisplay}</span> <b style="color: #ff6b6b; font-size: 0.9em;">Canceled</b>`;
-                
                 if (cancelReason) {
                     reasonDisplay = `<div style="font-size: 0.85em; margin-top: 6px; color: #ffb3b3; font-style: italic;">Reason: ${cancelReason}</div>`;
                 }
             }
+
+            // --- NEW: Apply gray-out styles for past events ---
+            if (isPast) {
+                ev.style.opacity = "0.45"; 
+                ev.style.filter = "grayscale(80%)";
+            }
+            // --------------------------------------------------
             
             ev.innerHTML = `
                 <div class="event-name"><strong>${event.name}</strong></div>
