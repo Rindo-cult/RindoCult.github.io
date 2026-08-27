@@ -6,15 +6,12 @@ class Event {
         this.end = end ? new Date(end) : null;
     }
 
-    // UPDATE: Now accepts the current calendar day as an argument
     formatDate(currentDate) {
         if (!this.start) return "No start date";
 
-        // Fallback just in case it's called without a date
         const targetDate = currentDate || this.start;
 
-        // Project the original UTC time onto the CURRENT calendar day.
-        // This stops the browser from applying historical DST offsets to recurring events.
+        // Project the original UTC time onto the CURRENT calendar day to prevent DST bugs
         const displayStart = new Date(Date.UTC(
             targetDate.getFullYear(),
             targetDate.getMonth(),
@@ -113,7 +110,6 @@ function renderCalendar(events) {
 
         const todaysEvents = events.filter(event => event.occursOn(date));
 
-        // UPDATE: Safely sort the events using their projected times
         todaysEvents.sort((a, b) => {
             const dateA = new Date(Date.UTC(year, month, day, a.start.getUTCHours(), a.start.getUTCMinutes()));
             const timeA = dateA.getHours() * 60 + dateA.getMinutes();
@@ -127,8 +123,13 @@ function renderCalendar(events) {
         todaysEvents.forEach(event => {
             const ev = document.createElement("div");
             ev.classList.add("event");
-            // UPDATE: We pass the 'date' variable into formatDate so it uses today's timezone rules!
-            ev.innerHTML = `<strong>${event.name}${event.formatDate(date)}`;
+            
+            // Replaced the <br> with <div> elements to force line breaks and restore calendar height
+            ev.innerHTML = `
+                <div class="event-name"><strong>${event.name}</strong></div>
+                <div class="event-time" style="margin-top: 4px;">${event.formatDate(date)}</div>
+            `;
+            
             cell.appendChild(ev);
         });
 
