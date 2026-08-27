@@ -104,6 +104,10 @@ function renderCalendar(events) {
 
         const label = document.createElement("div");
         label.classList.add("date");
+        
+        // NEW: Force the text to never wrap to a second line
+        label.style.whiteSpace = "nowrap"; 
+        
         const dayName = date.toLocaleDateString(undefined, { weekday: 'short' });
         label.textContent = `${day} ${dayName}`;
         cell.appendChild(label);
@@ -124,7 +128,7 @@ function renderCalendar(events) {
             const ev = document.createElement("div");
             ev.classList.add("event");
             
-            // Replaced the <br> with <div> elements to force line breaks and restore calendar height
+            // Format the event name and time into separate block elements
             ev.innerHTML = `
                 <div class="event-name"><strong>${event.name}</strong></div>
                 <div class="event-time" style="margin-top: 4px;">${event.formatDate(date)}</div>
