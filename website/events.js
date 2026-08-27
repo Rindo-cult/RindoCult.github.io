@@ -1,9 +1,11 @@
 class Event {
-    constructor(name, frequency, start, end) {
+    constructor(name, frequency, start, end, cancelled = false, reason = "") {
         this.name = name;
-        this.frequency = frequency; // "once", "weekly", "monthly", "yearly"
+        this.frequency = frequency; 
         this.start = start ? new Date(start) : null;
         this.end = end ? new Date(end) : null;
+        this.cancelled = cancelled; 
+        this.reason = reason; 
     }
 
     formatDate(currentDate) {
@@ -11,7 +13,6 @@ class Event {
 
         const targetDate = currentDate || this.start;
 
-        // Project the original UTC time onto the CURRENT calendar day to prevent DST bugs
         const displayStart = new Date(Date.UTC(
             targetDate.getFullYear(),
             targetDate.getMonth(),
@@ -59,13 +60,45 @@ class Event {
     }
 }
 
+// NEW LOGIC: Checks if a specific calendar day falls inside any multi-day blackout periods
+function getActiveBlackouts(currentDate, allEvents) {
+    // Treat any event with "cancelled: true" as a blackout rule
+    const blackouts = allEvents.filter(e => e.cancelled);
+    
+    return blackouts.filter(b => {
+        if (!b.start) return false;
+        
+        let s = new Date(b.start);
+        let e = b.end ? new Date(b.end) : new Date(b.start); 
+        
+        if (b.frequency === "once") {
+            s.setHours(0, 0, 0, 0);
+            e.setHours(23, 59, 59, 999);
+            return currentDate >= s && currentDate <= e;
+        } else if (b.frequency === "yearly") {
+            // For yearly events (like Staff Vacation), we check the Month/Day to see if it crosses a year boundary (Dec to Jan)
+            let dateMD = (currentDate.getMonth() + 1) * 100 + currentDate.getDate();
+            let startMD = (s.getMonth() + 1) * 100 + s.getDate();
+            let endMD = (e.getMonth() + 1) * 100 + e.getDate();
+            
+            if (startMD > endMD) { 
+                return dateMD >= startMD || dateMD <= endMD; // Handles Dec 21 to Jan 3 correctly!
+            } else {
+                return dateMD >= startMD && dateMD <= endMD;
+            }
+        }
+        return false;
+    });
+}
+
+
 async function fetchEvents() {
     try {
         const response = await fetch("website/events.json");
         if (!response.ok) throw new Error(`Failed to fetch events.json (status ${response.status})`);
         
         const data = await response.json();
-        const events = data.map(e => new Event(e.name, e.frequency, e.start, e.end));
+        const events = data.map(e => new Event(e.name, e.frequency, e.start, e.end, e.cancelled, e.reason));
         renderCalendar(events);
 
     } catch (err) {
@@ -104,16 +137,35 @@ function renderCalendar(events) {
 
         const label = document.createElement("div");
         label.classList.add("date");
-        
-        // NEW: Force the text to never wrap to a second line
         label.style.whiteSpace = "nowrap"; 
         
         const dayName = date.toLocaleDateString(undefined, { weekday: 'short' });
         label.textContent = `${day} ${dayName}`;
         cell.appendChild(label);
 
-        const todaysEvents = events.filter(event => event.occursOn(date));
+        // 1. Get all standard (non-cancelled) events happening today
+        let todaysEvents = events.filter(event => !event.cancelled && event.occursOn(date));
 
+        // 2. Check if there are any active blackout periods for this specific day
+        const activeBlackouts = getActiveBlackouts(date, events);
+        
+        // 3. Find if there is a "Global Blackout" (A blackout name that doesn't match a normal event name, like "Staff Vacation")
+        const globalBlackout = activeBlackouts.find(b => !events.some(e => e.name === b.name && !e.cancelled));
+
+        // 4. Clean up overlaps (if you rescheduled a specific event for one day)
+        const uniqueEventsMap = new Map();
+        todaysEvents.forEach(event => {
+            if (!uniqueEventsMap.has(event.name)) {
+                uniqueEventsMap.set(event.name, event);
+            } else {
+                if (event.frequency === "once") {
+                    uniqueEventsMap.set(event.name, event);
+                }
+            }
+        });
+        todaysEvents = Array.from(uniqueEventsMap.values());
+
+        // Sort chronologically
         todaysEvents.sort((a, b) => {
             const dateA = new Date(Date.UTC(year, month, day, a.start.getUTCHours(), a.start.getUTCMinutes()));
             const timeA = dateA.getHours() * 60 + dateA.getMinutes();
@@ -124,14 +176,45 @@ function renderCalendar(events) {
             return timeA - timeB;
         });
 
+        // 5. Render the events
         todaysEvents.forEach(event => {
             const ev = document.createElement("div");
             ev.classList.add("event");
             
-            // Format the event name and time into separate block elements
+            let timeDisplay = event.formatDate(date);
+            let reasonDisplay = ""; 
+
+            // Check if THIS specific event is cancelled, OR if the whole day is under a Global Blackout
+            const specificBlackout = activeBlackouts.find(b => b.name === event.name);
+            
+            let isCancelled = false;
+            let cancelReason = "";
+
+            if (specificBlackout) {
+                isCancelled = true;
+                cancelReason = specificBlackout.reason || (globalBlackout ? globalBlackout.name : "");
+            } else if (globalBlackout) {
+                isCancelled = true;
+                cancelReason = globalBlackout.name; // This grabs "Staff Vacation" to use as the reason!
+            }
+
+            // Apply the red styling and reason if the event was flagged
+            if (isCancelled) {
+                ev.classList.add("cancelled-event"); 
+                ev.style.backgroundColor = "rgba(180, 40, 40, 0.4)"; 
+                ev.style.border = "1px solid #ff4d4d";
+                
+                timeDisplay = `<span style="text-decoration: line-through; opacity: 0.7;">${timeDisplay}</span> <b style="color: #ff6b6b; font-size: 0.9em;">Canceled</b>`;
+                
+                if (cancelReason) {
+                    reasonDisplay = `<div style="font-size: 0.85em; margin-top: 6px; color: #ffb3b3; font-style: italic;">Reason: ${cancelReason}</div>`;
+                }
+            }
+            
             ev.innerHTML = `
                 <div class="event-name"><strong>${event.name}</strong></div>
-                <div class="event-time" style="margin-top: 4px;">${event.formatDate(date)}</div>
+                <div class="event-time" style="margin-top: 4px;">${timeDisplay}</div>
+                ${reasonDisplay} 
             `;
             
             cell.appendChild(ev);
