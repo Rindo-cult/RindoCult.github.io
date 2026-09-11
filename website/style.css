@@ -160,10 +160,11 @@ body::before {
 
 /* Calendar Grid */
 #calendar {
-display: grid;
-grid-template-columns: repeat(7, 1fr);
-gap: 5px;
-margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap:5px;
+    margin-top: 1rem;
+    overflow: scroll;
 }
 
 .calendar-day {
