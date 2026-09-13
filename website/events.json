@@ -40,6 +40,13 @@
     "start": "2026-12-21T00:00:00Z",
     "end": "2027-01-03T00:00:00Z",
     "cancelled": true
+  },
+  {
+    "name": "Rindo Rave MK3",
+    "frequency": "once",
+    "start": "2026-11-28T20:00:00Z",
+    "end": "2026-11-29T02:00:00Z",
+    "cancelled": false
   }
 ]
 
