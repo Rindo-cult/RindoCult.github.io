@@ -158,13 +158,25 @@ body::before {
     text-decoration: none;
 }
 
+/* Scrollbar setting for smaller Displays */
+@media (max-width: 710.00px) {
+    #calendar {
+        overflow: scroll;
+        scrollbar-color:rgba(255,255,255,0.1) rgba(255, 255, 255, 0.1);
+    }
+    @supports selector(::-webkit-scrollbar) {
+        #calendar {
+            background: rgba(255,255,255,0.1) rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+
 /* Calendar Grid */
 #calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-gap:5px;
     margin-top: 1rem;
-    overflow: scroll;
 }
 
 .calendar-day {
