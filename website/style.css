@@ -207,3 +207,19 @@ body::before {
     font-size: 0.75rem;
 }
 
+/* Deactivated links */
+#forums a.deactivated {
+    color: #ff4444;
+    cursor: not-allowed;
+    pointer-events: none;
+    text-decoration: line-through;
+}
+
+#forums a.deactivated:hover,
+#forums a.deactivated:focus {
+    color: #ff4444;
+    background: none;
+    border-radius: 0;
+    padding: 0;
+    text-decoration: line-through;
+}
